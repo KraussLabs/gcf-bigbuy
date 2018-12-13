@@ -1,4 +1,4 @@
 node_modules/
 credentials.txt
-gcf-bigbuy/bb_fetch_db_write/gcp-function-write-to-db/test.js
-gcf-bigbuy/bb_fetch_inventory/test.js
+/bb_fetch_db_write/gcp-function-write-to-db/test.js
+/bb_fetch_inventory/test.js
