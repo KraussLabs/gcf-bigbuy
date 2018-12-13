@@ -1,5 +1,3 @@
 *node_modules/
 credentials.txt
-bb_fetch_db_write/gcp-function-write-to-db/test.js
-bb_fetch_inventory/test.js
 */tests.js

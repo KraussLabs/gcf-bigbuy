@@ -56,7 +56,7 @@ let mysqlPool;
       console.error(err);
     } else {
       console.log('Dropped table succesfully');
-      mysqlPool.query(' CREATE TABLE inventory \n (bigbuy_id INT(15), quantity INT(15), minHandlingDays INT(15), maxHandlingDays INT(15), sku TEXT, PRIMARY KEY (bigbuy_id)) ENGINE=INNODB;', (err, results) => {
+      mysqlPool.query(' CREATE TABLE inventory \n (bigbuy_id INT(15), quantity INT(15), minHandlingDays INT(15), maxHandlingDays INT(15), sku(10) TEXT, PRIMARY KEY (bigbuy_id), INDEX(sku(10), bigbuy_id)) ENGINE=INNODB;', (err, results) => {
         if (err) {
           console.error(err);
         } else {

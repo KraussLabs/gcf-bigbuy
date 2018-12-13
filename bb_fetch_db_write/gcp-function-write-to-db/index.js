@@ -58,7 +58,7 @@ let mysqlPool;
       console.error(err);
     } else {
       console.log('Dropped table succesfully');
-      mysqlPool.query(' CREATE TABLE products \n ( manufacturer INT(15), bigbuy_id INT(15) NOT NULL, sku TEXT(20) NOT NULL, ean13 TEXT(20) NOT NULL, weight DOUBLE(10,3), height DOUBLE(10,3), width DOUBLE(10,3), depth DOUBLE(10,3), dateUpd TEXT, category INT(10), categories TINYTEXT, dateUpdDescription TEXT, dateUpdImages TEXT, dateUpdStock TEXT, wholesalePrice DOUBLE(10,3), retailPrice DOUBLE(10,3), dateAdd TEXT, video TINYTEXT,  active TINYINT, images TINYTEXT, attributes TINYTEXT, tags TINYTEXT, taxRate INT(10), taxId INT(10), dateUpdProperties TEXT, dateUpdCategories TEXT, inShopsPrice DOUBLE(10,3), PRIMARY KEY (bigbuy_id)) ENGINE=INNODB;', (err, results) => {
+      mysqlPool.query(' CREATE TABLE products \n ( manufacturer INT(15), bigbuy_id INT(15) NOT NULL, sku TEXT(20) NOT NULL, ean13 TEXT(20) NOT NULL, weight DOUBLE(10,3), height DOUBLE(10,3), width DOUBLE(10,3), depth DOUBLE(10,3), dateUpd TEXT, category INT(10), categories TINYTEXT, dateUpdDescription TEXT, dateUpdImages TEXT, dateUpdStock TEXT, wholesalePrice DOUBLE(10,3), retailPrice DOUBLE(10,3), dateAdd TEXT, video TINYTEXT,  active TINYINT, images TINYTEXT, attributes TINYTEXT, tags TINYTEXT, taxRate INT(10), taxId INT(10), dateUpdProperties TEXT, dateUpdCategories TEXT, inShopsPrice DOUBLE(10,3), PRIMARY KEY (bigbuy_id), INDEX(sku(10), ean13(10), bigbuy_id, manufacturer)) ENGINE=INNODB;', (err, results) => {
         if (err) {
           console.error(err);
         } else {
