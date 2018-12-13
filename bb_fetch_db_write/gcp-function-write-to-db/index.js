@@ -1,18 +1,20 @@
-
-//const mysql = require('mysql');
+/**
+ * Get Products
+ */
+const mysql = require('mysql');
 const request = require("request");
 const http = require("https");
-//const bigbuy = require("./bigbuy.js");
 var EventEmitter = require("events").EventEmitter;
 
 
 /**
  * TODO(developer): specify SQL connection details
  */
-const connectionName = process.env.INSTANCE_CONNECTION_NAME;
+const connectionName = process.env.INSTANCE_CONNECTION_NAME ;
 const dbUser = process.env.SQL_USER ;
 const dbPassword = process.env.SQL_PASSWORD ;
 const dbName = process.env.SQL_NAME ;
+const bigbuytoken = process.env.BBKEY;
 
 const mysqlConfig = {
   connectionLimit: 1,
@@ -26,73 +28,117 @@ if (process.env.NODE_ENV === 'production') {
 
 let payload = new EventEmitter();
 
-// bigbuy API request details
-
-//node version
-//const getDataFromBB = () => {
-// GCF versions
 exports.getDataFromBB = () => {
 
-
+//bbrequests('https://api.bigbuy.eu/', 'rest/catalog/attributegroups', 'json', payload);
 bbrequests('https://api.bigbuy.eu/', 'rest/catalog/products', 'json', payload);
 
 payload.on('update', function () {
-    console.log("got all these responses: ")
-    console.log(payload.data); 
+    console.log("Object updated")
+    let mydata = sqlify(payload.data);
+    console.log("starting the database functions");
+    writeToDB(mydata);
+
 });
 
 };
 
-//getDataFromBB();
 
-// Connection pools reuse connections between invocations,
-// and handle dropped or expired connections automatically.
-/*
+const writeToDB = (datatowrite) => {
 
-let mysqlPool;
+let mysqlPool;  
 
-
-exports.mysqlDemo = (req, res) => {
-  // Initialize the pool lazily, in case SQL access isn't needed for this
-  // GCF instance. Doing so minimizes the number of active SQL connections,
-  // which helps keep your GCF instances under SQL connection limits.
   if (!mysqlPool) {
     mysqlPool = mysql.createPool(mysqlConfig);
   }
+// delete the initial contents of the table by dropping it and creating a new one with the same specs:
 
-  const messageToStore = req.query.message;
-
-  mysqlPool.query('INSERT INTO messages(title,timestamp, status) VALUES ("'+messageToStore+'", now(), 2)', (err, results) => {
+    mysqlPool.query('DROP TABLE products ', (err, results) => {
     if (err) {
       console.error(err);
-      res.status(500).send(err);
     } else {
-      res.status(200).send('Message stored succesfully: ' + messageToStore);
-    }
-  });
+      console.log('Dropped table succesfully');
+      mysqlPool.query(' CREATE TABLE products \n ( manufacturer INT(15), bigbuy_id INT(15) NOT NULL, sku TEXT(20) NOT NULL, ean13 TEXT(20) NOT NULL, weight DOUBLE(10,3), height DOUBLE(10,3), width DOUBLE(10,3), depth DOUBLE(10,3), dateUpd TEXT, category INT(10), categories TINYTEXT, dateUpdDescription TEXT, dateUpdImages TEXT, dateUpdStock TEXT, wholesalePrice DOUBLE(10,3), retailPrice DOUBLE(10,3), dateAdd TEXT, video TINYTEXT,  active TINYINT, images TINYTEXT, attributes TINYTEXT, tags TINYTEXT, taxRate INT(10), taxId INT(10), dateUpdProperties TEXT, dateUpdCategories TEXT, inShopsPrice DOUBLE(10,3), PRIMARY KEY (bigbuy_id)) ENGINE=INNODB;', (err, results) => {
+        if (err) {
+          console.error(err);
+        } else {
+          console.log('Created new table succesfully');
+           mysqlPool.query('INSERT INTO products(manufacturer,bigbuy_id,sku,ean13,weight,height,width,depth,dateUpd,category,categories,dateUpdDescription,dateUpdImages,dateUpdStock,wholesalePrice,retailPrice,dateAdd,video,active,images,attributes,tags,taxRate,taxId,dateUpdProperties,dateUpdCategories,inShopsPrice)'+  
+           '\n VALUES '+datatowrite+' ;' , (err, results) => {
+            if(err){
+            console.log("error while inserting the blob");
+            console.error(err);
+            } else {
+            console.log('sql job started');
+            };
+           });
+      };
+    }); 
+};
+});
+};
 
-  // Close any SQL resources that were declared inside this function.
-  // Keep any declared in global scope (e.g. mysqlPool) for later reuse.
-} */
 
 const bbrequests = (environment, path, format, saveBodyTo) => {
-
-//exports.bbrequests = (environment, path, format, saveBodyTo) => {
 
 let options = { method: 'GET',
   url: environment+path+"."+format,
   headers: 
    { 'Postman-Token': 'ce12b485-aa27-435d-8679-db85780c1fb1',
      'cache-control': 'no-cache',
-     /// TODO - change this code to get an env variable that is the BigBuy token
-     Authorization: 'Bearer NjBlOGY3MmY1ZGQwOWYzN2Y4NzJkNDI3MTcwMjA0ZGU1NWFkZTAyYTlkYWIxMDdiODljOGI4NTE4MDEwZmViZA' } };
+     Authorization: bigbuytoken } };
 
 request(options, function (error, response, data) {
   if (error) throw new Error(error);
-  
   saveBodyTo.data = data;
   saveBodyTo.emit('update');
 })
+}
+
+const sqlify = (messedUpData) => {
+ // transforms the dirty bb payload into an array of json objects 
+ 
+  messedUpData = messedUpData.replace("[", "(");
+  messedUpData = messedUpData.replace("]", ")");
+  messedUpData = messedUpData.replace(/},{/g, "), (");
+  messedUpData = messedUpData.replace("{", "");
+  messedUpData = messedUpData.replace("}", "");
+  messedUpData = messedUpData.replace(/"manufacturer"/g,'');
+  messedUpData = messedUpData.replace(/"id"/g,'');
+  messedUpData = messedUpData.replace(/"sku"/g,'');
+  messedUpData = messedUpData.replace(/"ean13"/g,'');
+  messedUpData = messedUpData.replace(/"weight"/g,'');
+  messedUpData = messedUpData.replace(/"height"/g,'');
+  messedUpData = messedUpData.replace(/"width"/g,'');
+  messedUpData = messedUpData.replace(/"depth"/g,'');
+  messedUpData = messedUpData.replace(/"dateUpd"/g,'');
+  messedUpData = messedUpData.replace(/"category"/g,'');
+  messedUpData = messedUpData.replace(/"categories"/g,'');
+  messedUpData = messedUpData.replace(/"dateUpdDescription"/g,'');
+  messedUpData = messedUpData.replace(/"dateUpdImages"/g,'');
+  messedUpData = messedUpData.replace(/"dateUpdStock"/g,'');
+  messedUpData = messedUpData.replace(/"wholesalePrice"/g,'');
+  messedUpData = messedUpData.replace(/"retailPrice"/g,'');
+  messedUpData = messedUpData.replace(/"dateAdd"/g,'');
+  messedUpData = messedUpData.replace(/"video"/g,'');
+  messedUpData = messedUpData.replace(/"active"/g,'');
+  messedUpData = messedUpData.replace(/"images"/g,'');
+  messedUpData = messedUpData.replace(/"attributes"/g,'');
+  messedUpData = messedUpData.replace(/"tags"/g,'');
+  messedUpData = messedUpData.replace(/"taxRate"/g,'');
+  messedUpData = messedUpData.replace(/"taxId"/g,'');
+  messedUpData = messedUpData.replace(/"dateUpdProperties"/g,'');
+  messedUpData = messedUpData.replace(/"dateUpdCategories"/g,'');
+  messedUpData = messedUpData.replace(/"inShopsPrice"/g,'');
+  messedUpData = messedUpData.replace(/:/g,'');
+  messedUpData = messedUpData.replace(/"null"/g,'null');
+
+  cleanData = messedUpData;
+  //console.log("cleaned your json request. Here's the first element: " + cleanData);
+  
+  return cleanData;
+
 };
+
 
 

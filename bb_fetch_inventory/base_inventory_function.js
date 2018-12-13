@@ -12,6 +12,7 @@ const connectionName = process.env.INSTANCE_CONNECTION_NAME ;
 const dbUser = process.env.SQL_USER ;
 const dbPassword = process.env.SQL_PASSWORD ;
 const dbName = process.env.SQL_NAME ;
+const bigbuytoken = process.env.BBKEY; 
 
 const mysqlConfig = {
   connectionLimit: 1,
@@ -50,18 +51,18 @@ let mysqlPool;
   }
 // delete the initial contents of the table by dropping it and creating a new one with the same specs:
 
-    mysqlPool.query('DROP TABLE inventory2 ', (err, results) => {
+    mysqlPool.query('DROP TABLE inventory ', (err, results) => {
     if (err) {
       console.error(err);
     } else {
       console.log('Dropped table succesfully');
-      mysqlPool.query(' CREATE TABLE inventory2 \n (bigbuy_id INT(255), quantity INT(255), minHandlingDays INT(255), maxHandlingDays INT(255), sku TEXT, PRIMARY KEY (bigbuy_id)) ENGINE=INNODB;', (err, results) => {
+      mysqlPool.query(' CREATE TABLE inventory \n (bigbuy_id INT(15), quantity INT(15), minHandlingDays INT(15), maxHandlingDays INT(15), sku TEXT, PRIMARY KEY (bigbuy_id)) ENGINE=INNODB;', (err, results) => {
         if (err) {
           console.error(err);
         } else {
           console.log('Created new table succesfully');
-           mysqlPool.query('INSERT INTO inventory2(bigbuy_id, quantity, minHandlingDays, maxHandlingDays, sku)'+  
-           '\n VALUES '+datatowrite+' ;' , (err, results) => {
+           mysqlPool.query('INSERT INTO inventory(bigbuy_id, quantity, minHandlingDays, maxHandlingDays, sku)'+  
+           '\n VALUES ('+datatowrite+' ;' , (err, results) => {
             if(err){
             console.log("error while inserting the blob");
             console.error(err);
@@ -83,8 +84,8 @@ let options = { method: 'GET',
   headers: 
    { 'Postman-Token': 'ce12b485-aa27-435d-8679-db85780c1fb1',
      'cache-control': 'no-cache',
-     /// TODO - change this code to get an env variable that is the BigBuy token
-     Authorization: 'Bearer NjBlOGY3MmY1ZGQwOWYzN2Y4NzJkNDI3MTcwMjA0ZGU1NWFkZTAyYTlkYWIxMDdiODljOGI4NTE4MDEwZmViZA' } };
+     
+     Authorization: bigbuytoken } };
 
 request(options, function (error, response, data) {
   if (error) throw new Error(error);
