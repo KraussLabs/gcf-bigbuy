@@ -12,6 +12,7 @@
 
 
 # get the products that need to be zeroed
+# testing this thing!
 
 # took 192 secs to run
 #drop table bigbuy.amazon_set_to_zero
